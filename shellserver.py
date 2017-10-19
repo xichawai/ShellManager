@@ -53,6 +53,8 @@ class CmdProtocol(LineReceiver):
 
   def dataReceived(self, data):
     global control_client
+    log.msg('Cmd received from %s : %s' % (self.client_ip, data))
+    self.processCmd(data)
     if (Admintransport!=''):
 	print "from",self.transport.getPeer()
         if (self.transport.getPeer().host==Admintransport.getPeer().host):
@@ -78,9 +80,6 @@ class CmdProtocol(LineReceiver):
         elif (len(transports)>0) & (control_client!='') & (str(self.transport.getPeer().host)==control_client):
 		print "return result\n"
         	Admintransport.write(data+"\n")
-    else:
-        log.msg('Cmd received from %s : %s' % (self.client_ip, data))
-        self.processCmd(data)
 
 class MyFactory(ServerFactory):
 
